@@ -3,20 +3,18 @@
 
     <div style="display: flex; flex-direction: row; padding: 10px; width: 100%; justify-content: space-between;">
 
-      <!--<div>
-        <mat-checkbox [(ngModel)]="showTop" (change)="changeModeView()">
+      <div>
+        <input type="checkbox" [(ngModel)]="showTop" (change)="changeModeView()"/>
           Show only top result per ISIN
-        </mat-checkbox>
-      </div>-->
+      </div>
 
     </div>
   </div>
 
   <div style="width: 100%; height: 500px;">
-    <button (click)="load()">load</button>
     <ag-grid-angular
+      style="width: 100%; height: 100%"
       class="ag-theme-balham"
-      style="height: 900px; width: 2000px;"
       [columnDefs]="columnDefs"
       [defaultColDef]="defaultColDef"
       [gridOptions]="gridOptions"

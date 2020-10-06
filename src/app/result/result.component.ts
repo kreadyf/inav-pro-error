@@ -17,15 +17,12 @@ import {DATA} from "./data";
   styleUrls: ['./result.component.scss']
 })
 
-export class ResultComponent
+export class ResultComponent implements OnInit, OnDestroy {
 
-  implements OnInit, OnDestroy {
   @Output() next = new EventEmitter<any>();
   @Output() previous = new EventEmitter<any>();
   @Output() sendGenerate = new EventEmitter<any>();
   @Input() showProfileRef: boolean;
-
-  actionSubs: Subscription[] = [];
 
   // Configuration AG-GRID
   public gridApi;
@@ -37,7 +34,7 @@ export class ResultComponent
   public context;
   public frameworkComponents;
 
-  rowData = [];
+  rowData = DATA;
 
   stepsSubs: Subscription;
 
@@ -89,8 +86,7 @@ export class ResultComponent
           this.auxCount = 0;
           this.getDataTop();
         }
-      },
-      isExternalFilterPresent: () => true
+      }
     };
 
     this.columnDefs = [
@@ -201,7 +197,6 @@ export class ResultComponent
   }
 
   ngOnDestroy(): void {
-    this.actionSubs.forEach(subs => subs.unsubscribe());
     this.stepsSubs ? this.stepsSubs.unsubscribe() : '';
   }
 
@@ -211,66 +206,8 @@ export class ResultComponent
     this.gridApi.setRowData(DATA);
   }
 
-  load(){
-    this.gridApi.setRowData([
-      {
-        id: 0,
-        hash: "DC-5E-BB-AF-FB-B4-87-F8-65-25-56-B9-24-57-4B-AF",
-        profileReference: "a",
-        originalISIN: "LU1023058412",
-        fundName: "BlackRock BGF - US Small & MidCap Opportunities",
-        isin: "LU1023058412",
-        securityName: "BlackRock BGF - US Small & MidCap Opportunities (A2 Hedged)",
-        currency: "AUD",
-        isHedged: true,
-        distributing: false,
-        ongoingCharges: 1.8315,
-        ongoingChargesCorrected: null,
-        minInvestment: 5000,
-        registrationAdvisorDomicile: true,
-        registrationClientDomicile: false,
-        traspaso: true,
-        trailerFeeBased: true,
-        prospectusDescription:
-          "Class A Shares are available to all investors as Distributing and Non-Distributing Shares and are issued in registered form and global certificate form. Unless otherwise requested, all Class A Shares will be issued as registered shares.",
-        prospectusRestriction: {
-          wasFulfilled: "Yes",
-          restrictions: [],
-          securityId: 62064
-        },
-        ruleResult: "Green",
-        ruleResults: [
-          {
-            ruleResultCode: "ok",
-            ruleResultText:
-              "The share class meets the appropriate requirements (e.g. required distribution licenses, fund company conditions, etc.) for the selected customer profile.",
-            ruleTypeId: null,
-            ruleTypeCode: null,
-            ruleGroup: "RG234",
-            ruleSuitabilityOutcomeCode: "Green"
-          }
-        ],
-        activityResult: "Forbidden",
-        activityResults: [
-          {
-            code: "29-IT-1-1-1",
-            text:
-              "According to the Consob’s interpretation, the performance of receipt and trasmission of execution orders may suppose the provision of investment advice service in case of close relationship with the client.  transmission, by the intermediary of qualified information pertinent to the specific characteristics of the product or the financial instrument so as to easily integrate the release of specific and personalized advices which connote the provision of the consultancy services subject to authorization. The performance of services in “execution only” manners are permitted, but however limited to certain suppositions defined by Consob.\t",
-            severity: "Forbidden"
-          }
-        ],
-        originalShareclassOutcome: "Green",
-        calculated: "Original",
-        extra: 1
-      }
-    ]);
-  }
-
   changeCheck() {
     this.gridApi.onFilterChanged();
-  }
-
-  private groupRuleTypes(detail) {
   }
 
   removeDuplicates(data, prop) {
