@@ -1,0 +1,31 @@
+<div>
+  <div style="height: 50px;">
+
+    <div style="display: flex; flex-direction: row; padding: 10px; width: 100%; justify-content: space-between;">
+
+      <!--<div>
+        <mat-checkbox [(ngModel)]="showTop" (change)="changeModeView()">
+          Show only top result per ISIN
+        </mat-checkbox>
+      </div>-->
+
+    </div>
+  </div>
+
+  <div style="width: 100%; height: 100%;">
+    <ag-grid-angular
+      class="ag-theme-balham"
+      style="height: 900px; width: 1200px;"
+      [columnDefs]="columnDefs"
+      [defaultColDef]="defaultColDef"
+      [gridOptions]="gridOptions"
+      [groupUseEntireRow]="true"
+      [rowClassRules]="rowClassRules"
+      [context]="context"
+      [frameworkComponents]="frameworkComponents"
+      (gridReady)="onGridReady($event)"
+    >
+    </ag-grid-angular>
+  </div>
+
+</div>

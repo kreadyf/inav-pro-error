@@ -3,7 +3,8 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  agGridLicense: 'CompanyName=Investment Navigator AG,LicensedGroup=Multi,LicenseType=MultipleApplications,LicensedConcurrentDeveloperCount=2,LicensedProductionInstancesCount=1,AssetReference=AG-008087,ExpiryDate=12_May_2021_[v2]_MTYyMDc3NDAwMDAwMA==01ce29f693a74c11c41ae7e4effb865f'
 };
 
 /*
