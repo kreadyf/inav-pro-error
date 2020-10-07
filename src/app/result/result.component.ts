@@ -47,6 +47,8 @@ export class ResultComponent implements OnInit, OnDestroy {
   showTop = false;
   auxFilterModel: any;
 
+  filterSource = "Default";
+
   constructor() {
 
     this.defaultColDef = {
@@ -64,121 +66,65 @@ export class ResultComponent implements OnInit, OnDestroy {
       minInvestmentFilter: ResultFilterComponent
     };
 
+    
+
     this.gridOptions = {
       headerHeight: 45,
       rowGroupPanelShow: 'always',
-      onFilterChanged: (event: any) => {
-        this.auxCount++;
-        if (this.auxCount === 1) {
-          event.eventPrevented();
+      onModelUpdated: (event:any)=> {
+        console.log(this.filterSource);
+        if ( event.api )
+        {
+          
+          if (this.filterSource === "Default")
+          {
+            event.api.forEachLeafNode(function(rowNode) {
+                rowNode.data.orgOrFirstAlt = true;
+            });
+            this.filterSource = "TopResultReset";
+              event.api.getFilterInstance('orgOrFirstAlt')
+                .setModel({filterType: 'set', values: null });
+            event.api.onFilterChanged();
+            return;
+          }
+
+          if (this.filterSource === "TopResultReset")
+          {
+            let processedItems = {};
+            event.api.forEachNodeAfterFilterAndSort(function(rowNode) {
+              if ( rowNode.data )
+              {
+                rowNode.data.orgOrFirstAlt = rowNode.data.originalISIN === rowNode.data.isin || processedItems[rowNode.data.hash] === undefined;
+
+                if (rowNode.data.originalISIN !== rowNode.data.isin )
+                  processedItems[rowNode.data.hash] = true;
+              }
+            });
+            this.filterSource = "TopResultRefreshed";
+            if (this.showTop)
+              event.api.getFilterInstance('orgOrFirstAlt')
+                .setModel({filterType: 'set', values: ["true"] });
+            event.api.onFilterChanged();
+            return;
+          }
         }
-        if (this.showTop && this.auxCount === 2) {
-          this.auxCount = 0;
-          this.getDataTop();
-        }
-      },
-      onSortChanged: (event: any) => {
-        this.auxCount++;
-        if (this.auxCount === 1) {
-          event.eventPrevented();
-        }
-        if (this.showTop && this.auxCount === 2) {
-          this.auxCount = 0;
-          this.getDataTop();
-        }
+
+        this.filterSource = "Default";  
+        event.api.refreshCells();
+
+
       }
     };
 
     this.columnDefs = [
-
-      {headerName: 'extra', field: 'extra', filter: 'agSetColumnFilter'},
-      {headerName: 'Profile ref.', field: 'profileReference', filter: 'agSetColumnFilter'},
-      {
-        headerName: 'Suitability Result',
-        field: 'ruleResult',
-        minWidth: 150,
-        maxWidth: 150
-      },
-      {
-        headerName: 'Prospectus Description',
-        field: 'prospectusDescription'
-      },
-      {
-        headerName: 'Activity Result',
-        field: 'activityResult'
-      },
-      {headerName: 'Original ISIN', field: 'originalISIN', rowGroup: false},
-      {headerName: 'Fund Name', field: 'fundName'},
+      {headerName: 'hash', field: 'hash', width: 300},
+      {headerName: 'orgOrFirstAlt', field: 'orgOrFirstAlt', filter: 'agSetColumnFilter', width: 100},
+      {headerName: 'extra', field: 'extra', filter: 'agSetColumnFilter', width: 80},
       {
         headerName: 'Sort',
-        field: 'calculated'
+        field: 'calculated', width: 120
       },
       {headerName: 'ISIN', field: 'isin'},
-      {headerName: 'Security Name', field: 'securityName'},
-      {headerName: 'Currency', field: 'currency'},
-      {
-        headerName: 'Hedged',
-        field: 'isHedged',
-        valueGetter: params =>
-          params.data && params.data.isHedged ? 'Yes' : 'No'
-      },
-      {
-        headerName: 'Distributing',
-        field: 'distributing',
-        valueGetter: params =>
-          params.data && params.data.distributing ? 'Yes' : 'No'
-      },
-      {
-        headerName: 'Trailer Fee Based',
-        field: 'trailerFeeBased'
-      },
-      {
-        headerName: 'Ongoing Charges',
-        field: 'ongoingCharges',
-        filter: 'agNumberColumnFilter',
-        cellRenderer: param =>
-          param.value !== null && param.value !== undefined
-            ? param.value.toFixed(4)
-            : ''
-      },
-      {
-        headerName: 'Ongoing Charges Corrected',
-        filter: 'agNumberColumnFilter',
-        field: 'ongoingChargesCorrected',
-        cellRenderer: param =>
-          param.value !== null && param.value !== undefined
-            ? param.value.toFixed(4)
-            : ''
-      },
-      {
-        headerName: 'Min Investment',
-        filter: 'minInvestmentFilter',
-        menuTabs: ['filterMenuTab'],
-        field: 'minInvestment',
-        cellRenderer: param =>
-          param.value !== null
-            ? Math.round(param.value).toLocaleString('de-CH')
-            : ''
-      },
-      {
-        headerName: 'Registration Advisor Domicile',
-        field: 'registrationAdvisorDomicile',
-        valueGetter: params =>
-          params.data && params.data.registrationAdvisorDomicile ? 'Yes' : 'No'
-      },
-      {
-        headerName: 'Registration Client Domicile',
-        field: 'registrationClientDomicile',
-        valueGetter: params =>
-          params.data && params.data.registrationClientDomicile ? 'Yes' : 'No'
-      },
-      {
-        headerName: 'Traspaso',
-        field: 'traspaso',
-        valueGetter: params =>
-          params.data && params.data.traspaso ? 'Yes' : 'No'
-      }
-
     ];
 
     this.rowClassRules = {
@@ -224,43 +170,9 @@ export class ResultComponent implements OnInit, OnDestroy {
   }
 
   changeModeView() {
-    if (this.showTop) {
-      this.auxCount = 0;
-      this.getDataTop();
-    } else {
-      this.gridApi.destroyFilter('extra');
-    }
-  }
 
-  getDataTop() {
-    this.auxFilterModel = this.gridApi.getFilterModel();
 
-    this.rowData = this.rowData.map(r => r.extra === 2 ? ({...r, extra: 3}) : r);
-    this.gridApi.setRowData(this.rowData);
-
-    this.gridApi.setFilterModel(null);
-    delete this.auxFilterModel.extra;
-    this.gridApi.setFilterModel(this.auxFilterModel);
-
-    let auxFiltered = [];
-    this.gridApi.forEachNodeAfterFilterAndSort(n => auxFiltered.push(n.data));
-    auxFiltered = auxFiltered.length > 0 ? auxFiltered : this.rowData;
-
-    const auxAlternative = this.removeDuplicates(
-      auxFiltered.filter(r => r ? r.calculated === 'Alternative' : false),
-      'hash'
-    ).map(r => r.id);
-
-    this.rowData = this.rowData.map(r => auxAlternative.indexOf(r.id) > -1 ? ({...r, extra: 2}) : r);
-    this.gridApi.setRowData(this.rowData);
-
-    this.gridApi.setFilterModel({
-      ...this.auxFilterModel,
-      extra: {
-        filterType: 'set',
-        values: ['1', '2']
-      }
-    });
+    this.gridApi.onFilterChanged();    
   }
 
 }
