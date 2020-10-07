@@ -69,10 +69,8 @@ export class ResultComponent implements OnInit, OnDestroy {
       headerHeight: 45,
       rowGroupPanelShow: 'always',
       onModelUpdated: (event:any)=> {
-        console.log(this.filterSource);
         if ( event.api )
         {
-          
           if (this.filterSource === "Default")
           {
             event.api.forEachLeafNode(function(rowNode) {
@@ -105,11 +103,8 @@ export class ResultComponent implements OnInit, OnDestroy {
             return;
           }
         }
-
         this.filterSource = "Default";  
         event.api.refreshCells();
-
-
       }
     };
 
@@ -133,9 +128,6 @@ export class ResultComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Generate success
-
-
   }
 
   ngOnDestroy(): void {
@@ -166,10 +158,7 @@ export class ResultComponent implements OnInit, OnDestroy {
   }
 
   changeModeView() {
-
-
     this.gridApi.onFilterChanged();    
   }
-
 }
 
