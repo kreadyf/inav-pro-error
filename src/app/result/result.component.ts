@@ -43,10 +43,7 @@ export class ResultComponent implements OnInit, OnDestroy {
 
   disableCheck = new BehaviorSubject<boolean>(true);
 
-  auxCount = 1;
   showTop = false;
-  auxFilterModel: any;
-
   filterSource = "Default";
 
   constructor() {
@@ -119,7 +116,6 @@ export class ResultComponent implements OnInit, OnDestroy {
     this.columnDefs = [
       {headerName: 'hash', field: 'hash', width: 300},
       {headerName: 'orgOrFirstAlt', field: 'orgOrFirstAlt', filter: 'agSetColumnFilter', width: 100},
-      {headerName: 'extra', field: 'extra', filter: 'agSetColumnFilter', width: 80},
       {
         headerName: 'Sort',
         field: 'calculated', width: 120
