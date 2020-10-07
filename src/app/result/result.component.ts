@@ -77,8 +77,6 @@ export class ResultComponent implements OnInit, OnDestroy {
                 rowNode.data.orgOrFirstAlt = true;
             });
             this.filterSource = "TopResultReset";
-              event.api.getFilterInstance('orgOrFirstAlt')
-                .setModel({filterType: 'set', values: null });
             event.api.onFilterChanged();
             return;
           }
@@ -96,9 +94,6 @@ export class ResultComponent implements OnInit, OnDestroy {
               }
             });
             this.filterSource = "TopResultRefreshed";
-            if (this.showTop)
-              event.api.getFilterInstance('orgOrFirstAlt')
-                .setModel({filterType: 'set', values: ["true"] });
             event.api.onFilterChanged();
             return;
           }
@@ -158,6 +153,13 @@ export class ResultComponent implements OnInit, OnDestroy {
   }
 
   changeModeView() {
+    if (!this.showTop)
+      this.gridApi.getFilterInstance('orgOrFirstAlt')
+        .setModel({filterType: 'set', values: null });
+    else
+      this.gridApi.getFilterInstance('orgOrFirstAlt')
+        .setModel({filterType: 'set', values: ["true"] });
+
     this.gridApi.onFilterChanged();    
   }
 }
