@@ -110,6 +110,7 @@ export class ResultComponent implements OnInit, OnDestroy {
         width: 120
       },
       { headerName: "ISIN", field: "isin" },
+      { ...this.CreateNumberFilterParams("Min. Inv.", "minInvestment") },
       { ...this.CreateNumberFilterParams("Ong. Charges", "ongoingCharges") }
     ];
 
