@@ -217,7 +217,7 @@ export class ResultComponent implements OnInit, OnDestroy {
         return {
           isOriginal: rowData.calculated === "Original",
           cellValue: rowData[columnName]
-        }; // pass all row data
+        };
       }
     };
   }
