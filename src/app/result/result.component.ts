@@ -5,20 +5,18 @@ import {
   OnDestroy,
   OnInit,
   Output
-} from '@angular/core';
-import {GridReadyEvent} from 'ag-grid-community';
-import {BehaviorSubject, Subscription} from 'rxjs';
-import {ResultFilterComponent} from "./result-filter.component";
-import {DATA} from "./data";
+} from "@angular/core";
+import { GridReadyEvent, ValueGetterParams } from "ag-grid-community";
+import { BehaviorSubject, Subscription } from "rxjs";
+import { ResultFilterComponent } from "./result-filter.component";
+import { DATA } from "./data";
 
 @Component({
-  selector: 'result',
-  templateUrl: './result.component.html',
-  styleUrls: ['./result.component.scss']
+  selector: "result",
+  templateUrl: "./result.component.html",
+  styleUrls: ["./result.component.scss"]
 })
-
 export class ResultComponent implements OnInit, OnDestroy {
-
   @Output() next = new EventEmitter<any>();
   @Output() previous = new EventEmitter<any>();
   @Output() sendGenerate = new EventEmitter<any>();
@@ -47,49 +45,44 @@ export class ResultComponent implements OnInit, OnDestroy {
   filterSource = "Default";
 
   constructor() {
-
     this.defaultColDef = {
       enableRowGroup: true,
       enablePivot: true,
       resizable: true,
-      filter: 'text',
+      filter: "text",
       sortable: true,
       editable: true,
       floatingFilter: true
     };
 
-    this.context = {componentParent: this};
+    this.context = { componentParent: this };
     this.frameworkComponents = {
       minInvestmentFilter: ResultFilterComponent
     };
 
-    
-
     this.gridOptions = {
       headerHeight: 45,
-      rowGroupPanelShow: 'always',
-      onModelUpdated: (event:any)=> {
-        if ( event.api )
-        {
-          if (this.filterSource === "Default")
-          {
+      rowGroupPanelShow: "always",
+      onModelUpdated: (event: any) => {
+        if (event.api) {
+          if (this.filterSource === "Default") {
             event.api.forEachLeafNode(function(rowNode) {
-                rowNode.data.orgOrFirstAlt = true;
+              rowNode.data.orgOrFirstAlt = true;
             });
             this.filterSource = "TopResultReset";
             event.api.onFilterChanged();
             return;
           }
 
-          if (this.filterSource === "TopResultReset")
-          {
+          if (this.filterSource === "TopResultReset") {
             let processedItems = {};
             event.api.forEachNodeAfterFilterAndSort(function(rowNode) {
-              if ( rowNode.data )
-              {
-                rowNode.data.orgOrFirstAlt = rowNode.data.originalISIN === rowNode.data.isin || processedItems[rowNode.data.hash] === undefined;
+              if (rowNode.data) {
+                rowNode.data.orgOrFirstAlt =
+                  rowNode.data.originalISIN === rowNode.data.isin ||
+                  processedItems[rowNode.data.hash] === undefined;
 
-                if (rowNode.data.originalISIN !== rowNode.data.isin )
+                if (rowNode.data.originalISIN !== rowNode.data.isin)
                   processedItems[rowNode.data.hash] = true;
               }
             });
@@ -98,23 +91,30 @@ export class ResultComponent implements OnInit, OnDestroy {
             return;
           }
         }
-        this.filterSource = "Default";  
+        this.filterSource = "Default";
         event.api.refreshCells();
       }
     };
 
     this.columnDefs = [
-      {headerName: 'hash', field: 'hash', width: 300},
-      {headerName: 'orgOrFirstAlt', field: 'orgOrFirstAlt', filter: 'agSetColumnFilter', width: 100},
+      { headerName: "hash", field: "hash", width: 300 },
       {
-        headerName: 'Sort',
-        field: 'calculated', width: 120
+        headerName: "orgOrFirstAlt",
+        field: "orgOrFirstAlt",
+        filter: "agSetColumnFilter",
+        width: 100
       },
-      {headerName: 'ISIN', field: 'isin'},
+      {
+        headerName: "Sort",
+        field: "calculated",
+        width: 120
+      },
+      { headerName: "ISIN", field: "isin" },
+      { ...this.CreateNumberFilterParams("Ong. Charges", "ongoingCharges") }
     ];
 
     this.rowClassRules = {
-      'isin-equals': params => {
+      "isin-equals": params => {
         if (params && params.data) {
           return params.data.isin === params.data.originalISIN;
         }
@@ -122,11 +122,10 @@ export class ResultComponent implements OnInit, OnDestroy {
     };
   }
 
-  ngOnInit() {
-  }
+  ngOnInit() {}
 
   ngOnDestroy(): void {
-    this.stepsSubs ? this.stepsSubs.unsubscribe() : '';
+    this.stepsSubs ? this.stepsSubs.unsubscribe() : "";
   }
 
   onGridReady(params: GridReadyEvent) {
@@ -154,13 +153,72 @@ export class ResultComponent implements OnInit, OnDestroy {
 
   changeModeView() {
     if (!this.showTop)
-      this.gridApi.getFilterInstance('orgOrFirstAlt')
-        .setModel({filterType: 'set', values: null });
+      this.gridApi
+        .getFilterInstance("orgOrFirstAlt")
+        .setModel({ filterType: "set", values: null });
     else
-      this.gridApi.getFilterInstance('orgOrFirstAlt')
-        .setModel({filterType: 'set', values: ["true"] });
+      this.gridApi
+        .getFilterInstance("orgOrFirstAlt")
+        .setModel({ filterType: "set", values: ["true"] });
 
-    this.gridApi.onFilterChanged();    
+    this.gridApi.onFilterChanged();
+  }
+
+  CreateNumberFilterParams(headerName: string, columnName: string): any {
+    let createFilterOption = (key: string, label: string, func: any) => ({
+      displayKey: key,
+      displayName: label,
+      test: (filterValue, cellValue) =>
+        cellValue.isOriginal ||
+        (cellValue.cellValue != null && func(filterValue, cellValue.cellValue))
+    });
+
+    return {
+      headerName: headerName,
+      field: columnName,
+      filter: "agNumberColumnFilter",
+      filterParams: {
+        defaultOption: "lessThanOrEqual",
+        filterOptions: [
+          "empty",
+          {
+            ...createFilterOption(
+              "lessThanOrEqual",
+              "Less Than or Equal",
+              (filterVal, val) => val <= filterVal
+            )
+          },
+          {
+            ...createFilterOption(
+              "lessThan",
+              "Less Than",
+              (filterVal, val) => val < filterVal
+            )
+          },
+          {
+            ...createFilterOption(
+              "greaterThanOrEqual",
+              "Greater Than or Equal",
+              (filterVal, val) => val >= filterVal
+            )
+          },
+          {
+            ...createFilterOption(
+              "greaterThan",
+              "Greater Than",
+              (filterVal, val) => val > filterVal
+            )
+          }
+        ],
+        suppressAndOrCondition: true
+      },
+      filterValueGetter: (params: ValueGetterParams) => {
+        const rowData = params.data;
+        return {
+          isOriginal: rowData.calculated === "Original",
+          cellValue: rowData[columnName]
+        }; // pass all row data
+      }
+    };
   }
 }
-
